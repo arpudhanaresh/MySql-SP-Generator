@@ -54,7 +54,7 @@ def getColumnName(tableName):
            splittedColumnList = x[0]
            TempColumnList.append(splittedColumnList)
 
-    return TempColumnList;
+    return TempColumnList
 
 def generateInsertSP(tableName):
     
@@ -95,9 +95,40 @@ def generateInsertSP(tableName):
 
     return 1
 
+def generateUpdateSP(tableName):
+    SP = "("
+    getTableNameandTyeQuery = f'''select COLUMN_NAME , COLUMN_TYPE from information_schema.columns 
+         where table_schema = '{databaseName}'
+          and Table_name = '{tableName}'  '''
+
+    mycursor.execute(getTableNameandTyeQuery)
+    UnSortedTableList = mycursor.fetchall()
+    for x in UnSortedTableList:
+        columnName = x[0]
+        columnDataType = x[1]
+        #print(columnDataType)
+        SP = SP + 'p'+ columnName + ' '+ columnDataType + ','
+    SP = SP[:len(SP) - 1]
+    SP = SP+') BEGIN UPDATE ' +tableName + ' SET '
+    for x in UnSortedTableList:
+        columnName = x[0]
+        columnDataType = x[1]
+        #print(columnDataType)
+        #SP = SP + 'p'+ columnName + ' '+ columnDataType + ','
+        SP = ' '+SP + columnName + ' = ' + 'p'+ columnName + ' ,'
+    SP = SP[:len(SP) - 1]
+    print(SP)
+    f = open(f"UPDATE_SP_{tableName}.txt", "a")
+    f.write(SP)
+    f.close()
+    
+
+    return 1
+
 switchNumber = int(input(''' Enter 1 for list Table from Database\n
-                             Enter 2 for column list for a Table\n
-                             Enter 3 to generate Insert SP for Table'''))
+Enter 2 for column list for a Table\n
+Enter 3 to generate Insert SP for Table\n
+ENter 4 to generate Update SP for Table'''))
 if(switchNumber ==1):
     tableList = getTableData();
     for x in tableList:
@@ -119,6 +150,10 @@ elif(switchNumber == 3):
     tableName = input("Enter Table Name: ")
     
     generateInsertSP(tableName);
+
+elif(switchNumber == 4):
+    tableName = input("Enter Table Name: ")
+    generateUpdateSP(tableName)
     
 
 
